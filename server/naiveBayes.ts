@@ -12,10 +12,14 @@ const __dirname  = path.dirname(__filename);
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
+export type ConfidenceCategory = "high" | "medium" | "low";
+
 export interface PredictionResult {
   disease: string;
   confidence: number;
   relativeConfidence: number;
+  normalizedEntropy: number;
+  confidenceCategory: ConfidenceCategory;
   topCandidates: { disease: string; probability: number }[];
 }
 
@@ -88,6 +92,8 @@ export class NaiveBayesClassifier {
         disease: "General Illness",
         confidence: 0.5,
         relativeConfidence: 1,
+        normalizedEntropy: 1,
+        confidenceCategory: "low",
         topCandidates: [{ disease: "General Illness", probability: 0.5 }],
       };
     }
@@ -131,11 +137,30 @@ export class NaiveBayesClassifier {
       ? Math.round((1 - secondProb / topProb) * 100) / 100
       : 0;
 
+    // Normalized entropy: 0 = completely certain, 1 = uniform distribution
+    // Measures how spread out the probability mass is across all classes
+    const numClasses = this.classes.length;
+    const entropy = -Array.from(expMap.values())
+      .reduce((sum, exp) => {
+        const p = exp / expTotal;
+        return sum + (p > 0 ? p * Math.log(p) : 0);
+      }, 0) / Math.log(numClasses);
+    const normalizedEntropy = Math.round(Math.min(entropy, 1) * 100) / 100;
+    const entropyScore = 1 - normalizedEntropy;
+
+    // Confidence category based on entropy score
+    let confidenceCategory: ConfidenceCategory;
+    if (entropyScore >= 0.9) confidenceCategory = "high";
+    else if (entropyScore >= 0.65) confidenceCategory = "medium";
+    else confidenceCategory = "low";
+
     return {
-      disease:       sorted[0].disease,
-      confidence:    Math.round(topProb * 100) / 100,   // raw probability
-      relativeConfidence,                                // how decisively it beats the alternatives
-      topCandidates: sorted.slice(0, 3),
+      disease:           sorted[0].disease,
+      confidence:        Math.round(topProb * 100) / 100,
+      relativeConfidence,
+      normalizedEntropy,
+      confidenceCategory,
+      topCandidates:     sorted.slice(0, 3),
     };
   }
 

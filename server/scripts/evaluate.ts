@@ -145,6 +145,19 @@ function evaluate(): void {
   const nbResult = evaluateModel("Naive Bayes", nbPredict, nbTop3, testingRecords);
   printModelResults("Naive Bayes", nbResult, testingRecords.length);
 
+  // Confidence distribution
+  let high = 0, medium = 0, low = 0;
+  for (const record of testingRecords) {
+    const r = classifier.predict(record.symptoms);
+    if (r.confidenceCategory === "high") high++;
+    else if (r.confidenceCategory === "medium") medium++;
+    else low++;
+  }
+  console.log(`\n  Confidence Distribution:`);
+  console.log(`    High   : ${high} (${(high/testingRecords.length*100).toFixed(1)}%)`);
+  console.log(`    Medium : ${medium} (${(medium/testingRecords.length*100).toFixed(1)}%)`);
+  console.log(`    Low    : ${low} (${(low/testingRecords.length*100).toFixed(1)}%)`);
+
   console.log("\n" + "=".repeat(72));
   console.log("  Evaluation complete.");
   console.log("=".repeat(72) + "\n");

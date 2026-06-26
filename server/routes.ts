@@ -1918,10 +1918,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         disease: nbResult.disease,
         confidence: nbResult.confidence,
         relativeConfidence: nbResult.relativeConfidence,
+        normalizedEntropy: nbResult.normalizedEntropy,
+        confidenceCategory: nbResult.confidenceCategory,
         topCandidates: nbResult.topCandidates,
       };
 
-      log(`AI prediction [NB]: ${prediction.disease} (confidence: ${prediction.confidence})`);
+      log(`AI prediction [NB]: ${prediction.disease} (conf: ${prediction.confidence}, cat: ${prediction.confidenceCategory})`);
 
       // Stage 2 — Resolve predicted disease to medical specialty
       const specialty = resolveSpecialty(prediction.disease);
@@ -1965,9 +1967,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
           disease:           prediction.disease,
           confidence:        prediction.confidence,
           relativeConfidence: prediction.relativeConfidence,
+          normalizedEntropy: prediction.normalizedEntropy,
+          confidenceCategory: prediction.confidenceCategory,
           topCandidates:     prediction.topCandidates,
         },
         resolvedSpecialty: specialty,
+        confidenceCategory: prediction.confidenceCategory,
         doctors: formattedDoctors,
       });
 
