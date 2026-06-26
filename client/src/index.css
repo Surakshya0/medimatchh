@@ -1,0 +1,115 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: 201 20% 98%;
+  --foreground: 222 19% 23%;
+  --muted: 201 20% 90%;
+  --muted-foreground: 222 15% 40%;
+  --popover: 201 20% 98%;
+  --popover-foreground: 222 19% 23%;
+  --card: 0 0% 100%;
+  --card-foreground: 222 19% 23%;
+  --border: 201 20% 80%;
+  --input: 201 20% 80%;
+  --primary: 207 86% 62%; /* #4AA8F0 Sky Blue */
+  --primary-foreground: 0 0% 100%;
+  --secondary: 142 54% 76%; /* #A3E4C1 Mint Green */
+  --secondary-foreground: 222 19% 23%;
+  --accent: 199 89% 88%; /* #B3E5FC Soft Sky Blue */
+  --accent-foreground: 222 19% 23%;
+  --destructive: 0 84.2% 60.2%;
+  --destructive-foreground: 60 9.1% 97.8%;
+  --ring: 200 57% 38%;
+  --radius: 0.5rem;
+  
+  /* Chart colors */
+  --chart-1: 207 86% 62%; /* #4AA8F0 Sky Blue */
+  --chart-2: 142 54% 76%; /* #A3E4C1 Mint Green */
+  --chart-3: 199 89% 88%; /* #B3E5FC Soft Sky Blue */
+  --chart-4: 222 19% 27%; /* #2E3A59 Slate Gray */
+  --chart-5: 210 20% 98%; /* #F4F7FA Light Ice Gray */
+  
+  /* Sidebar colors */
+  --sidebar-background: 222 19% 27%; /* #2E3A59 Slate Gray */
+  --sidebar-foreground: 0 0% 100%;
+  --sidebar-primary: 207 86% 62%; /* #4AA8F0 Sky Blue */
+  --sidebar-primary-foreground: 0 0% 100%;
+  --sidebar-accent: 199 89% 88%; /* #B3E5FC Soft Sky Blue */
+  --sidebar-accent-foreground: 222 19% 27%;
+  --sidebar-border: 222 15% 30%;
+  --sidebar-ring: 142 54% 76%; /* #A3E4C1 Mint Green */
+}
+
+.dark {
+  --background: 222 30% 15%;
+  --foreground: 201 20% 98%;
+  --muted: 222 25% 25%;
+  --muted-foreground: 201 15% 80%;
+  --popover: 222 30% 15%;
+  --popover-foreground: 201 20% 98%;
+  --card: 222 30% 18%;
+  --card-foreground: 201 20% 98%;
+  --border: 222 25% 30%;
+  --input: 222 25% 30%;
+  --primary: 207 76% 55%; /* #3B98E0 Sky Blue - darker */
+  --primary-foreground: 0 0% 100%;
+  --secondary: 142 45% 66%; /* #8BD5AB Mint Green - darker */
+  --secondary-foreground: 201 20% 98%;
+  --accent: 199 75% 75%; /* #81D4FA Sky Blue - darker */
+  --accent-foreground: 0 0% 100%;
+  --destructive: 0 62.8% 30.6%;
+  --destructive-foreground: 0 0% 98%;
+  --ring: 203 65% 45%;
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply font-sans antialiased bg-[#F4F7FA] text-[#2E3A59]; /* Light Ice Gray: #F4F7FA, Slate Gray: #2E3A59 */
+  }
+  
+  /* Button styles */
+  .btn-primary {
+    @apply bg-primary text-white font-semibold hover:bg-primary/90 transition-colors;
+  }
+  
+  .btn-secondary {
+    @apply bg-secondary text-secondary-foreground font-medium hover:bg-secondary/80 transition-colors;
+  }
+  
+  /* Table styles for better contrast */
+  table th {
+    @apply text-foreground font-semibold;
+  }
+  
+  table td {
+    @apply text-foreground/90;
+  }
+  
+  /* Calendar day styles */
+  .calendar-day {
+    @apply transition-all duration-200;
+  }
+  
+  .calendar-day:hover:not(.calendar-day-disabled) {
+    @apply bg-primary/10;
+  }
+  
+  .calendar-day-selected {
+    @apply bg-primary text-white !important;
+  }
+  
+  .calendar-day-disabled {
+    @apply opacity-30 cursor-not-allowed;
+  }
+  
+  /* Symptom tag styles */
+  .symptom-tag {
+    @apply transition-all duration-200;
+  }
+}

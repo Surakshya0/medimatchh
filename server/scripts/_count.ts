@@ -1,0 +1,1 @@
+import 'dotenv/config'; import { db } from './db'; import { symptoms } from '../shared/schema'; import { count } from 'drizzle-orm'; const r = await db.select({ c: count() }).from(symptoms); console.log('Total symptoms in DB:', r[0].c);
