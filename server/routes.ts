@@ -1916,7 +1916,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const nbResult = classifier.predict(symptomNames);
       const prediction = {
         disease: nbResult.disease,
-        confidence: nbResult.relativeConfidence > nbResult.confidence ? nbResult.relativeConfidence : nbResult.confidence,
+        confidence: nbResult.confidence,
         relativeConfidence: nbResult.relativeConfidence,
         topCandidates: nbResult.topCandidates,
       };

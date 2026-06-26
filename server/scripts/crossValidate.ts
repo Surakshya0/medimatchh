@@ -42,7 +42,7 @@ function stratifiedKFold(records: TrainingRecord[], k: number): { train: Trainin
 }
 
 function crossValidate(): void {
-  const dataDir = path.join(__dirname, "..", "data");
+  const dataDir = path.join(__dirname, "..", "..", "data");
   const csvPath = path.join(dataDir, "Training.csv");
   const allRecords = loadKaggleCSV(csvPath);
 
