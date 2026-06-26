@@ -60,6 +60,9 @@ export const diseaseSpecialtyMap: Record<string, string[]> = {
   "Typhoid":                                 ["Internal Medicine", "Infectious Disease"],
   "AIDS":                                    ["Internal Medicine", "Infectious Disease"],
 
+  // Urology
+  "Urinary tract infection":                 ["Urology", "Internal Medicine", "General Practice"],
+
   // Fallback
   "General Illness":                         ["Internal Medicine", "Family Medicine", "General Practice"],
 };
