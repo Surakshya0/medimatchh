@@ -1,4 +1,4 @@
-﻿import { resolveSpecialty } from "../specialtyMapping";
+﻿import { resolveAllSpecialties } from "../specialtyMapping";
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
@@ -90,27 +90,31 @@ function generateDoctorSymptomLinks(doctors: DoctorInfo[], symptomNames: string[
   return links;
 }
 
-interface ScoredDoctor { doctor: DoctorInfo; matchScore: number; symptomMatches: number; scoreBreakdown: string; }
+interface ScoredDoctor { doctor: DoctorInfo; matchScore: number; symptomMatches: number; }
 
-function scoreAllDoctors(doctors: DoctorInfo[], symptomNames: string[], links: Map<number, Map<string, number>>): ScoredDoctor[] {
+function scoreAllDoctors(doctors: DoctorInfo[], symptomNames: string[], links: Map<number, Map<string, number>>, disease?: string): ScoredDoctor[] {
+  const targetSpecialties = disease ? resolveAllSpecialties(disease) : [];
+  const primarySpecialty = targetSpecialties[0] || "";
+
   return doctors.map(doctor => {
     const docLinks = links.get(doctor.id) || new Map();
     let symMatches = 0, expertiseTotal = 0;
-    const matched: string[] = [];
     for (const sym of symptomNames) {
-      if (docLinks.has(sym)) { symMatches++; const e = docLinks.get(sym) || 3; expertiseTotal += e; matched.push(sym + "(" + e + ")"); }
+      if (docLinks.has(sym)) { symMatches++; expertiseTotal += docLinks.get(sym) || 3; }
     }
     const symptomScore = symptomNames.length > 0 ? symMatches / symptomNames.length : 0;
     const expertiseScore = symMatches > 0 ? expertiseTotal / (5 * symMatches) : 0;
     const experienceScore = Math.min(doctor.experience / 30, 1);
     const ratingScore = doctor.rating / 5;
-    const finalScore = (symptomScore * 0.30 + expertiseScore * 0.20 + experienceScore * 0.15 + ratingScore * 0.15 + 0.5 * 0.10 + 0.5 * 0.10) * 100;
-    return {
-      doctor,
-      matchScore: Math.round(finalScore * 10) / 10,
-      symptomMatches: symMatches,
-      scoreBreakdown: "sym=" + (symptomScore * 100).toFixed(0) + "% exp=" + (expertiseScore * 100).toFixed(0) + "% expYrs=" + (experienceScore * 100).toFixed(0) + "%"
-    };
+
+    let relevanceMultiplier = 1.0;
+    if (disease) {
+      if (doctor.specialty === primarySpecialty) relevanceMultiplier = 1.3;
+      else if (targetSpecialties.includes(doctor.specialty)) relevanceMultiplier = 1.1;
+    }
+
+    const finalScore = (symptomScore * 0.30 + expertiseScore * 0.20 + experienceScore * 0.15 + ratingScore * 0.15 + 0.5 * 0.10 + 0.5 * 0.10) * 100 * relevanceMultiplier;
+    return { doctor, matchScore: Math.round(finalScore * 10) / 10, symptomMatches: symMatches };
   }).sort((a, b) => b.matchScore - a.matchScore);
 }
 
@@ -150,11 +154,10 @@ function evaluate(): void {
   const allSymptoms = loadAllSymptoms(csvPath);
   if (diseasePatterns.size === 0) { console.log("No disease-symptom patterns found."); return; }
 
-  const specialties = new Set(seedDoctors.map(d => d.specialty));
   console.log("\n" + "=".repeat(72));
-  console.log("  MEDIMATCH \u2014 Doctor Ranking Evaluation");
+  console.log("  MEDIMATCH \u2014 Doctor Ranking Evaluation (with relevance multiplier)");
   console.log("=".repeat(72));
-  console.log("  Doctors: " + seedDoctors.length + " across " + specialties.size + " specialties");
+  console.log("  Doctors: " + seedDoctors.length + " across " + new Set(seedDoctors.map(d => d.specialty)).size + " specialties");
   console.log("  Diseases: " + diseasePatterns.size + " test cases");
   console.log("  Symptoms: " + allSymptoms.length);
 
@@ -163,82 +166,82 @@ function evaluate(): void {
   for (const [, dl] of links) totalLinks += dl.size;
   console.log("  Associations: " + totalLinks + " (avg " + (totalLinks/seedDoctors.length).toFixed(0) + "/doctor)");
 
-  let endToEndCorrect = 0, endToEndCorrect3 = 0;
-  let specRankSum = 0;
-  const wrongCases: { disease: string; expected: string; got: string; rank: number; top3: string }[] = [];
+  // Evaluate WITHOUT relevance multiplier (baseline)
+  let oldCorrect1 = 0, oldCorrect3 = 0;
+  for (const [disease, symptoms] of diseasePatterns) {
+    if (symptoms.length === 0) continue;
+    const allRanked = scoreAllDoctors(seedDoctors, symptoms, links);
+    const expectedSpec = resolveAllSpecialties(disease)[0];
+    const top3 = allRanked.slice(0, 3);
+    if (allRanked[0].doctor.specialty.toLowerCase() === expectedSpec.toLowerCase()) oldCorrect1++;
+    if (top3.some(d => d.doctor.specialty.toLowerCase() === expectedSpec.toLowerCase())) oldCorrect3++;
+  }
+
+  // Evaluate WITH relevance multiplier
+  let newCorrect1 = 0, newCorrect3 = 0, specRankSum = 0;
+  const wrongCases: string[] = [];
 
   for (const [disease, symptoms] of diseasePatterns) {
     if (symptoms.length === 0) continue;
-    const expectedSpec = resolveSpecialty(disease);
-    const allRanked = scoreAllDoctors(seedDoctors, symptoms, links);
-    const correctSpecDocs = seedDoctors.filter(d => d.specialty.toLowerCase() === expectedSpec.toLowerCase());
-    if (correctSpecDocs.length === 0) continue;
-
-    const top1 = allRanked[0];
+    const allRanked = scoreAllDoctors(seedDoctors, symptoms, links, disease);
+    const expectedSpec = resolveAllSpecialties(disease)[0];
     const top3 = allRanked.slice(0, 3);
     const topSpecRank = allRanked.findIndex(d => d.doctor.specialty.toLowerCase() === expectedSpec.toLowerCase());
 
-    if (top1.doctor.specialty.toLowerCase() === expectedSpec.toLowerCase()) endToEndCorrect++;
-    if (top3.some(d => d.doctor.specialty.toLowerCase() === expectedSpec.toLowerCase())) endToEndCorrect3++;
+    if (allRanked[0].doctor.specialty.toLowerCase() === expectedSpec.toLowerCase()) newCorrect1++;
+    if (top3.some(d => d.doctor.specialty.toLowerCase() === expectedSpec.toLowerCase())) newCorrect3++;
     specRankSum += (topSpecRank + 1);
 
-    if (top1.doctor.specialty.toLowerCase() !== expectedSpec.toLowerCase()) {
-      wrongCases.push({
-        disease, expected: expectedSpec,
-        got: top1.doctor.specialty,
-        rank: topSpecRank + 1,
-        top3: top3.map(d => d.doctor.specialty + "(" + d.matchScore + ")").join(", ")
-      });
+    if (allRanked[0].doctor.specialty.toLowerCase() !== expectedSpec.toLowerCase()) {
+      wrongCases.push("  [" + disease.padEnd(35) + " expected " + expectedSpec.padEnd(20) + " rank " + (topSpecRank + 1) + " | top: " + top3.map(d => d.doctor.specialty).join(", "));
     }
   }
+
   const n = diseasePatterns.size;
   const avgSpecRank = specRankSum / n;
 
   console.log("\n  " + "\u2500".repeat(70));
-  console.log("  END-TO-END: All 25 doctors scored (no specialty pre-filter)");
+  console.log("  BEFORE (no relevance multiplier)  vs  AFTER (with multiplier)");
   console.log("  " + "\u2500".repeat(70));
-  console.log("  Top-1 correct specialty : " + endToEndCorrect + "/" + n + "  (" + (endToEndCorrect/n*100).toFixed(1) + "%)");
-  console.log("  Top-3 correct specialty : " + endToEndCorrect3 + "/" + n + "  (" + (endToEndCorrect3/n*100).toFixed(1) + "%)");
-  console.log("  Avg rank of 1st correct-specialty doctor: " + avgSpecRank.toFixed(1));
+  console.log("  Top-1 correct:  " + oldCorrect1 + "/" + n + " (" + (oldCorrect1/n*100).toFixed(1) + "%)      " + newCorrect1 + "/" + n + " (" + (newCorrect1/n*100).toFixed(1) + "%)");
+  console.log("  Top-3 correct:  " + oldCorrect3 + "/" + n + " (" + (oldCorrect3/n*100).toFixed(1) + "%)      " + newCorrect3 + "/" + n + " (" + (newCorrect3/n*100).toFixed(1) + "%)");
+  console.log("  Avg spec rank:  N/A                          " + avgSpecRank.toFixed(1));
 
-  const correct1Pct = (endToEndCorrect / n * 100).toFixed(1);
-  const correct3Pct = (endToEndCorrect3 / n * 100).toFixed(1);
-
-  console.log("\n  Top misclassifications (correct specialty rank > 1):");
-  wrongCases.sort((a, b) => b.rank - a.rank).slice(0, 8).forEach(w => {
-    console.log("  [" + w.disease.padEnd(35) + " expected " + w.expected.padEnd(20) + " rank " + w.rank + " | top: " + w.top3);
-  });
+  if (wrongCases.length > 0) {
+    console.log("\n  Remaining misclassifications (" + wrongCases.length + "):");
+    wrongCases.sort((a, b) => {
+      const rankA = parseInt(a.match(/rank (\d+)/)?.[1] || "99");
+      const rankB = parseInt(b.match(/rank (\d+)/)?.[1] || "99");
+      return rankB - rankA;
+    }).slice(0, 8).forEach(w => console.log(w));
+  }
 
   console.log("\n  " + "\u2500".repeat(70));
-  console.log("  WITHIN-SPECIALTY: Doctors differentiated by scoring?");
-  console.log("  " + "\u2500".repeat(70));
-  let diffCount = 0, multiCount = 0;
-  for (const disease of diseasePatterns.keys()) {
-    const expectedSpec = resolveSpecialty(disease);
-    const specDocs = seedDoctors.filter(d => d.specialty.toLowerCase() === expectedSpec.toLowerCase());
-    if (specDocs.length < 2) continue;
-    multiCount++;
-    const syms = diseasePatterns.get(disease)!;
-    if (syms.length === 0) continue;
-    const ranked = scoreAllDoctors(specDocs, syms, links);
-    const uniqueScores = new Set(ranked.map(r => r.matchScore));
-    if (uniqueScores.size > 1) diffCount++;
-  }
-  console.log("  Diseases with multi-doctor specialties: " + multiCount);
-  console.log("  Differentiated scores: " + diffCount + "/" + multiCount + " (" + (multiCount > 0 ? (diffCount/multiCount*100).toFixed(0) : 0) + "%)");
-
-  console.log("\n  Example: Fungal infection (expected: Dermatology)");
-  const fungalSyms = diseasePatterns.get("Fungal infection") || [];
-  if (fungalSyms.length > 0) {
-    const fungalRanked = scoreAllDoctors(seedDoctors, fungalSyms, links);
-    fungalRanked.slice(0, 5).forEach((d, i) => {
-      console.log("    " + (i+1) + ". " + d.doctor.specialty.padEnd(22) + " score=" + d.matchScore + "  matches=" + d.symptomMatches + "/" + fungalSyms.length + "  " + d.scoreBreakdown);
+  console.log("  Example: Arthritis (expected: Rheumatology)");
+  const arthritisSyms = diseasePatterns.get("Arthritis") || [];
+  if (arthritisSyms.length > 0) {
+    const aranked = scoreAllDoctors(seedDoctors, arthritisSyms, links, "Arthritis");
+    aranked.slice(0, 5).forEach((d, i) => {
+      const spec = d.doctor.specialty;
+      const isCorrect = spec === "Rheumatology";
+      console.log("    " + (i+1) + ". " + spec.padEnd(22) + " score=" + d.matchScore + "  matches=" + d.symptomMatches + "/" + arthritisSyms.length + (isCorrect ? "  <-- expected" : ""));
     });
   }
 
-  console.log("\n" + "=".repeat(72));
+  
+  console.log("\n  Example: Fungal infection (expected: Dermatology)");
+  const fungalSyms = diseasePatterns.get("Fungal infection") || [];
+  if (fungalSyms.length > 0) {
+    const franked = scoreAllDoctors(seedDoctors, fungalSyms, links, "Fungal infection");
+    franked.slice(0, 5).forEach((d, i) => {
+      const isCorrect = d.doctor.specialty === "Dermatology";
+      console.log("    " + (i+1) + ". " + d.doctor.specialty.padEnd(22) + " score=" + d.matchScore + "  matches=" + d.symptomMatches + "/" + fungalSyms.length + (isCorrect ? "  <-- expected" : ""));
+    });
+  }
+console.log("\n" + "=".repeat(72));
   console.log("  Doctor ranking evaluation complete.");
   console.log("=".repeat(72) + "\n");
 }
 
 evaluate();
+

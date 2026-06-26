@@ -13,6 +13,7 @@ import {
 import { eq, and, gte, lt, ne, sql, inArray } from "drizzle-orm";
 import { db, pool } from "./db";
 import type { TrainingRecord } from "./naiveBayes";
+import { resolveAllSpecialties } from "./specialtyMapping";
 
 // modify the interface with any CRUD methods
 export interface IStorage {
@@ -1134,17 +1135,26 @@ export class DatabaseStorage implements IStorage {
   async getDoctorsBySpecialtyRanked(
     symptomIds: number[],
     specialty: string,
-    options?: { patientCity?: string; checkAvailability?: boolean }
+    options?: { patientCity?: string; checkAvailability?: boolean; predictedDisease?: string }
   ): Promise<{doctor: Doctor, user: User, matchScore: number, symptomMatches: number}[]> {
 
-    // Step 1 — filter doctors by the resolved specialty
+    // Step 1 — determine which specialties to include
+    // If predictedDisease is provided, use disease→specialty mapping
+    // to include ALL relevant specialties with a relevance multiplier.
+    // Otherwise, fall back to filtering by the single resolved specialty.
+    const targetSpecialties = options?.predictedDisease
+      ? resolveAllSpecialties(options.predictedDisease)
+      : [specialty];
+
+    const primarySpecialty = targetSpecialties[0];
+
     const specialtyDoctors = await db
       .select()
       .from(doctors)
-      .where(eq(doctors.specialty, specialty));
+      .where(inArray(doctors.specialty, targetSpecialties));
 
     if (specialtyDoctors.length === 0) {
-      console.log(`No doctors found for specialty: ${specialty}`);
+      console.log(`No doctors found for specialties: ${targetSpecialties.join(", ")}`);
       return [];
     }
 
@@ -1217,16 +1227,25 @@ export class DatabaseStorage implements IStorage {
         const experienceScore = Math.min(parseInt(doctor.experience.toString()) / 30, 1);
         const ratingScore     = doctor.rating ? doctor.rating / 5 : 0.5;
 
-        // Location score: 1.0 if doctor's city matches patient's city, 0.5 if not, 0 if unknown
         let locationScore = 0;
         if (options?.patientCity && doctor.location) {
           locationScore = doctor.location.toLowerCase() === options.patientCity.toLowerCase() ? 1.0 : 0.5;
         }
 
-        // Availability score: 1.0 if slots available, 0 if not, 0.5 if not checked
         let availabilityScore = 0.5;
         if (options?.checkAvailability) {
           availabilityScore = hasAvailabilityMap.get(doctor.id) ? 1.0 : 0;
+        }
+
+        // Disease-specialty relevance multiplier
+        // Primary specialty gets 1.3x, secondary gets 1.1x, others get 1.0x
+        let relevanceMultiplier = 1.0;
+        if (options?.predictedDisease) {
+          if (doctor.specialty === primarySpecialty) {
+            relevanceMultiplier = 1.3;
+          } else if (targetSpecialties.includes(doctor.specialty)) {
+            relevanceMultiplier = 1.1;
+          }
         }
 
         const finalScore = (
@@ -1236,7 +1255,7 @@ export class DatabaseStorage implements IStorage {
           (ratingScore       * 0.15) +
           (locationScore     * 0.10) +
           (availabilityScore * 0.10)
-        ) * 100;
+        ) * 100 * relevanceMultiplier;
 
         return {
           doctor,
@@ -1248,7 +1267,7 @@ export class DatabaseStorage implements IStorage {
       .filter((r): r is {doctor: Doctor, user: User, matchScore: number, symptomMatches: number} => r !== null)
       .sort((a, b) => b.matchScore - a.matchScore);
 
-    console.log(`getDoctorsBySpecialtyRanked: ${results.length} doctors ranked for specialty "${specialty}"`);
+    console.log(`getDoctorsBySpecialtyRanked: ${results.length} doctors ranked (specialties: ${targetSpecialties.join(", ")})`);
     return results;
   }
   // ── END NEW v2 METHOD ──────────────────────────────────────────────────────

@@ -1947,9 +1947,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Stage 4 — Rank doctors filtered by specialty with location + availability
+      // Pass predictedDisease to enable disease-specialty relevance multiplier
       const rankedDoctors = await storage.getDoctorsBySpecialtyRanked(symptomIds, specialty, {
         patientCity,
         checkAvailability: true,
+        predictedDisease: prediction.disease,
       });
 
       // Format output
