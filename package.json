@@ -9,6 +9,7 @@
     "start": "NODE_ENV=production node dist/index.js",
     "check": "tsc",
     "eval": "tsx server/scripts/evaluate.ts",
+    "eval-doctors": "tsx server/scripts/evaluateDoctors.ts",
     "cross-validate": "tsx server/scripts/crossValidate.ts",
     "sync-symptoms": "tsx server/scripts/syncSymptoms.ts",
     "sync-doctors": "tsx server/scripts/syncDoctorSymptoms.ts",
