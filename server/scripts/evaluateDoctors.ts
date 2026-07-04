@@ -34,23 +34,28 @@ const seedDoctors: DoctorInfo[] = [
   { id: 223, specialty: "Oncology",           experience: 15, rating: 5 },
   { id: 224, specialty: "Cardiology",         experience: 13, rating: 5 },
   { id: 225, specialty: "Neurology",          experience: 9,  rating: 5 },
+  { id: 226, specialty: "Endocrinology",      experience: 14, rating: 5 },
+  { id: 227, specialty: "Endocrinology",      experience: 9,  rating: 5 },
+  { id: 228, specialty: "Rheumatology",       experience: 11, rating: 5 },
 ];
 
 function guessSpecialties(name: string): string[] {
   const lc = name.toLowerCase();
   const specs: string[] = [];
   if (/itch|skin|rash|pimple|blackhead|blister|crust|peeling|scur|denting|nail|sore|nodal|red\.spots|dischromic/.test(lc)) specs.push("Dermatology");
-  if (/headache|dizziness|vertigo|spinning|unsteadiness|balance|paralysis|slurred|sensorium/.test(lc)) specs.push("Neurology");
+  if (/headache|dizziness|vertigo|spinning|unsteadiness|balance|paralysis|slurred|sensorium|fainting|numbness|tingling|memory/.test(lc)) specs.push("Neurology");
   if (/cough|breathless|phlegm|sputum|congestion|sinus|runny nose|wheeze/.test(lc)) specs.push("Pulmonology");
-  if (/chest|heart|palpitation|fast heart/.test(lc)) specs.push("Cardiology");
+  if (/chest|heart|palpitation|fast heart|leg cramp|swollen leg|vein/.test(lc)) specs.push("Cardiology");
   if (/stomach|abdominal|belly|indigestion|acidity|nausea|vomiting|diarrhoea|constipation|gastro|ulcer/.test(lc)) specs.push("Gastroenterology");
-  if (/joint|knee|hip|muscle|back|neck|stiff|swelling joint|movement/.test(lc)) specs.push("Orthopedics");
+  if (/joint|knee|hip|shoulder|wrist|foot|back|neck|muscle|stiff|swelling joint|movement|deformity|morning.?stiffness/.test(lc)) specs.push("Orthopedics", "Rheumatology");
   if (/eye|vision|blurred|redness eye|watering eye/.test(lc)) specs.push("Ophthalmology");
-  if (/throat|sneeze|ear|sinus|runny nose/.test(lc)) specs.push("ENT");
+  if (/throat|sneeze|ear|sinus|runny nose|hearing|tinnitus/.test(lc)) specs.push("ENT");
+  if (/vertigo|spinning|unsteadiness|balance/.test(lc)) specs.push("ENT", "Neurology");
   if (/urine|urination|micturition|bladder/.test(lc)) specs.push("Urology");
   if (/fever|chill|shivering|sweating|dehydration/.test(lc)) specs.push("Internal Medicine");
-  if (/fatigue|lethargy|weakness|malaise|weight|obesity|appetite|hunger|thyroid|sugar|diabetes/.test(lc)) specs.push("Internal Medicine");
-  if (/mood|anxiety|depression|restlessness|irritability|concentration/.test(lc)) specs.push("Psychiatry");
+  if (/fatigue|lethargy|weakness|malaise/.test(lc)) specs.push("Internal Medicine");
+  if (/thyroid|sugar|diabetes|insulin|weight|obesity|appetite|hunger|hair|nail|intolerance/i.test(lc)) specs.push("Endocrinology", "Internal Medicine");
+  if (/mood|anxiety|depression|restlessness|irritability|concentration|insomnia/.test(lc)) specs.push("Psychiatry");
   if (/menstruation|pregnancy/.test(lc)) specs.push("Gynecology");
   if (/blood|anemia|transfusion/.test(lc)) specs.push("Internal Medicine");
   if (/liver|jaundice|yellow|hepatitis/.test(lc)) specs.push("Gastroenterology");

@@ -1,7 +1,9 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/lib/auth";
 import { Link } from "wouter";
-import { Calendar, Clock, Users, UserCheck, Activity, ChevronRight, Settings, LogOut, Stethoscope, FileText } from "lucide-react";
+import { Calendar, Clock, Users, UserCheck, Activity, ChevronRight, Settings, LogOut, Stethoscope, FileText, CheckCircle2 } from "lucide-react";
+import { apiRequest } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
 
 interface Appointment {
   id: number;
@@ -22,6 +24,19 @@ interface Appointment {
 
 export default function DoctorDashboard() {
   const { user, profile, logout } = useAuth();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+
+  const confirmAppt = useMutation({
+    mutationFn: async ({ id, status }: { id: number; status: string }) => {
+      await apiRequest("PATCH", `/api/appointments/${id}`, { status });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/appointments/doctor"] });
+      toast({ title: "Confirmed", description: "Appointment confirmed successfully." });
+    },
+    onError: (e) => toast({ title: "Failed", description: e.message || "Could not confirm.", variant: "destructive" }),
+  });
 
   const { data: appointments = [], isLoading } = useQuery<Appointment[]>({
     queryKey: ["/api/appointments/doctor"],
@@ -196,6 +211,15 @@ export default function DoctorDashboard() {
                 }`}>
                 {nextAppointment.status}
               </span>
+              {nextAppointment.status === "pending" && (
+                <button
+                  onClick={() => confirmAppt.mutate({ id: nextAppointment.id, status: "confirmed" })}
+                  className="text-xs font-bold text-emerald-600 hover:text-emerald-700 px-3 py-1.5
+                    rounded-full border border-emerald-200 hover:bg-emerald-50 transition-all flex items-center gap-1"
+                >
+                  <CheckCircle2 className="h-3.5 w-3.5" /> Confirm
+                </button>
+              )}
             </div>
           </div>
         )}
@@ -257,6 +281,15 @@ export default function DoctorDashboard() {
                             }`}>
                             {appt.status}
                           </span>
+                          {appt.status === "pending" && (
+                            <button
+                              onClick={() => confirmAppt.mutate({ id: appt.id, status: "confirmed" })}
+                              className="text-xs font-bold text-emerald-600 hover:text-emerald-700 px-2 py-1
+                                rounded-lg hover:bg-emerald-50 transition-colors flex items-center gap-1"
+                            >
+                              <CheckCircle2 className="h-3 w-3" /> Confirm
+                            </button>
+                          )}
                           <button className="text-xs font-bold text-sky-500 hover:text-sky-700 px-2 py-1
                             rounded-lg hover:bg-sky-50 transition-colors">
                             {isNext ? "Start" : "View"}

@@ -78,6 +78,24 @@ const SYMPTOM_ICONS: Record<string, React.ReactNode> = {
   anxiety:          <Brain className="w-6 h-6" />,
   irritability:     <AlertCircle className="w-6 h-6" />,
   restlessness:     <Activity className="w-6 h-6" />,
+  "slow healing":   <Bandage className="w-6 h-6" />,
+  "hair thinning":  <User className="w-6 h-6" />,
+  "heat intolerance": <Thermometer className="w-6 h-6" />,
+  tremors:          <Activity className="w-6 h-6" />,
+  "ear pain":       <AlertCircle className="w-6 h-6" />,
+  "hearing loss":   <AlertTriangle className="w-6 h-6" />,
+  tinnitus:         <Activity className="w-6 h-6" />,
+  "leg cramps":     <Footprints className="w-6 h-6" />,
+  "morning stiffness": <Activity className="w-6 h-6" />,
+  "joint deformity": <Bone className="w-6 h-6" />,
+  insomnia:         <Moon className="w-6 h-6" />,
+  "memory loss":    <Brain className="w-6 h-6" />,
+  numbness:         <Activity className="w-6 h-6" />,
+  tingling:         <Activity className="w-6 h-6" />,
+  fainting:         <RefreshCw className="w-6 h-6" />,
+  "shoulder pain":  <ArrowLeft className="w-6 h-6" />,
+  "foot pain":      <Footprints className="w-6 h-6" />,
+  "wrist pain":     <Hand className="w-6 h-6" />,
 };
 
 function SymptomIcon({ id }: { id: string }) {
@@ -86,16 +104,6 @@ function SymptomIcon({ id }: { id: string }) {
 
 // ── Category symptom grid ─────────────────────────────────────────────────────
 const SYMPTOM_GROUPS: Record<string, { symptoms: { id: string; label: string }[] }> = {
-  General:     { symptoms: [
-    { id: "fatigue",          label: "Fatigue" },
-    { id: "high fever",       label: "High Fever" },
-    { id: "mild fever",       label: "Mild Fever" },
-    { id: "chills",           label: "Chills" },
-    { id: "sweating",         label: "Sweating" },
-    { id: "weight loss",      label: "Weight Loss" },
-    { id: "malaise",          label: "Malaise" },
-    { id: "loss of appetite", label: "Loss of Appetite" },
-  ]},
   Respiratory: { symptoms: [
     { id: "cough",            label: "Cough" },
     { id: "breathlessness",   label: "Breathlessness" },
@@ -116,22 +124,6 @@ const SYMPTOM_GROUPS: Record<string, { symptoms: { id: string; label: string }[]
     { id: "stomach pain",     label: "Stomach Pain" },
     { id: "acidity",          label: "Acidity" },
   ]},
-  Cardiac:     { symptoms: [
-    { id: "chest pain",       label: "Chest Pain" },
-    { id: "fast heart rate",  label: "Fast Heart Rate" },
-    { id: "palpitations",     label: "Palpitations" },
-    { id: "swollen legs",     label: "Swollen Legs" },
-  ]},
-  Musculo:     { symptoms: [
-    { id: "joint pain",       label: "Joint Pain" },
-    { id: "back pain",        label: "Back Pain" },
-    { id: "muscle pain",      label: "Muscle Pain" },
-    { id: "neck pain",        label: "Neck Pain" },
-    { id: "knee pain",        label: "Knee Pain" },
-    { id: "stiff neck",       label: "Stiff Neck" },
-    { id: "muscle weakness",  label: "Muscle Weakness" },
-    { id: "swelling joints",  label: "Swelling Joints" },
-  ]},
   Skin:        { symptoms: [
     { id: "itching",          label: "Itching" },
     { id: "skin rash",        label: "Skin Rash" },
@@ -141,6 +133,8 @@ const SYMPTOM_GROUPS: Record<string, { symptoms: { id: string; label: string }[]
     { id: "blister",          label: "Blister" },
     { id: "pus filled pimples",label: "Pimples" },
     { id: "blackheads",       label: "Blackheads" },
+    { id: "slow healing",     label: "Slow Healing" },
+    { id: "hair thinning",    label: "Hair Thinning" },
   ]},
   Neuro:       { symptoms: [
     { id: "headache",         label: "Headache" },
@@ -151,6 +145,11 @@ const SYMPTOM_GROUPS: Record<string, { symptoms: { id: string; label: string }[]
     { id: "spinning movements",label: "Spinning" },
     { id: "weakness of one body side", label: "One-Side Weakness" },
     { id: "lack of concentration", label: "Poor Focus" },
+    { id: "numbness",         label: "Numbness" },
+    { id: "tingling",         label: "Tingling" },
+    { id: "fainting",         label: "Fainting" },
+    { id: "memory loss",      label: "Memory Loss" },
+    { id: "tremors",          label: "Tremors" },
   ]},
   Urological:  { symptoms: [
     { id: "dark urine",       label: "Dark Urine" },
@@ -158,6 +157,45 @@ const SYMPTOM_GROUPS: Record<string, { symptoms: { id: string; label: string }[]
     { id: "bladder discomfort",label: "Bladder Discomfort" },
     { id: "polyuria",         label: "Frequent Urination" },
     { id: "foul smell of urine", label: "Foul Urine Smell" },
+  ]},
+  Musculo:     { symptoms: [
+    { id: "joint pain",       label: "Joint Pain" },
+    { id: "back pain",        label: "Back Pain" },
+    { id: "muscle pain",      label: "Muscle Pain" },
+    { id: "neck pain",        label: "Neck Pain" },
+    { id: "knee pain",        label: "Knee Pain" },
+    { id: "stiff neck",       label: "Stiff Neck" },
+    { id: "muscle weakness",  label: "Muscle Weakness" },
+    { id: "swelling joints",  label: "Swelling Joints" },
+    { id: "morning stiffness",label: "Morning Stiffness" },
+    { id: "joint deformity",  label: "Joint Deformity" },
+    { id: "shoulder pain",    label: "Shoulder Pain" },
+    { id: "foot pain",        label: "Foot Pain" },
+    { id: "wrist pain",       label: "Wrist Pain" },
+  ]},
+  Cardiac:     { symptoms: [
+    { id: "chest pain",       label: "Chest Pain" },
+    { id: "fast heart rate",  label: "Fast Heart Rate" },
+    { id: "palpitations",     label: "Palpitations" },
+    { id: "swollen legs",     label: "Swollen Legs" },
+    { id: "leg cramps",       label: "Leg Cramps" },
+  ]},
+  General:     { symptoms: [
+    { id: "fatigue",          label: "Fatigue" },
+    { id: "high fever",       label: "High Fever" },
+    { id: "mild fever",       label: "Mild Fever" },
+    { id: "chills",           label: "Chills" },
+    { id: "sweating",         label: "Sweating" },
+    { id: "weight loss",      label: "Weight Loss" },
+    { id: "malaise",          label: "Malaise" },
+    { id: "loss of appetite", label: "Loss of Appetite" },
+    { id: "heat intolerance", label: "Heat Intolerance" },
+    { id: "insomnia",         label: "Insomnia" },
+  ]},
+  ENT:         { symptoms: [
+    { id: "ear pain",         label: "Ear Pain" },
+    { id: "hearing loss",     label: "Hearing Loss" },
+    { id: "tinnitus",         label: "Tinnitus" },
   ]},
 };
 
@@ -170,6 +208,7 @@ const GROUP_STYLES: Record<string, { tab: string; card: string; badge: string }>
   Skin:       { tab: "bg-amber-400 text-white",    card: "border-amber-200 from-amber-50 to-yellow-50", badge: "bg-amber-100 text-amber-700 border-amber-200" },
   Neuro:      { tab: "bg-indigo-400 text-white",   card: "border-indigo-200 from-indigo-50 to-violet-50",badge: "bg-indigo-100 text-indigo-700 border-indigo-200" },
   Urological: { tab: "bg-teal-400 text-white",     card: "border-teal-200 from-teal-50 to-cyan-50",     badge: "bg-teal-100 text-teal-700 border-teal-200" },
+  ENT:        { tab: "bg-pink-400 text-white",     card: "border-pink-200 from-pink-50 to-rose-50",      badge: "bg-pink-100 text-pink-700 border-pink-200" },
 };
 
 // ── Types ─────────────────────────────────────────────────────────────────────

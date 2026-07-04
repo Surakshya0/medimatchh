@@ -98,16 +98,26 @@ export class NaiveBayesClassifier {
       };
     }
 
-    const norm      = symptoms.map(s => s.toLowerCase().trim().replace(/\s+/g, " "));
+    const norm     = symptoms.map(s => s.toLowerCase().trim().replace(/\s+/g, " "));
+    const symptomSet = new Set(norm);
     const logScores = new Map<string, number>();
 
     for (const cls of this.classes) {
-      let logProb     = Math.log(this.classPriors.get(cls) || 1e-10);
-      const probMap   = this.conditionalProbs.get(cls)!;
-      for (const symptom of norm) {
+      let logProb   = Math.log(this.classPriors.get(cls) || 1e-10);
+      const probMap = this.conditionalProbs.get(cls)!;
+
+      // Bernoulli Naive Bayes: account for both present AND absent symptoms.
+      // Penalises classes whose characteristic symptoms are missing from the input,
+      // which fixes common confusions (e.g. Heart attack→Tuberculosis, Hepatitis D→E).
+      for (const symptom of this.vocabulary) {
         const prob = probMap.get(symptom) || 1 / (this.vocabulary.length + 1);
-        logProb += Math.log(prob);
+        if (symptomSet.has(symptom)) {
+          logProb += Math.log(prob);
+        } else {
+          logProb += Math.log(1 - prob);
+        }
       }
+
       logScores.set(cls, logProb);
     }
 

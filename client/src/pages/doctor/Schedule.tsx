@@ -1,9 +1,9 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/lib/auth";
 import { Calendar } from "@/components/ui/calendar";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
-import { Calendar as CalendarIcon, Clock, Users, ChevronRight, Plus, Trash2, Sun, Moon } from "lucide-react";
+import { Calendar as CalendarIcon, Clock, Users, ChevronRight, Plus, Trash2, Sun, Moon, CheckCircle2 } from "lucide-react";
 import { Link } from "wouter";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -34,7 +34,19 @@ const DAY_NAMES = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Frid
 export default function Schedule() {
   const { user } = useAuth();
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
+
+  const confirmAppt = useMutation({
+    mutationFn: async ({ id, status }: { id: number; status: string }) => {
+      await apiRequest("PATCH", `/api/appointments/${id}`, { status });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/appointments/doctor"] });
+      toast({ title: "Confirmed", description: "Appointment confirmed successfully." });
+    },
+    onError: (e) => toast({ title: "Failed", description: e.message || "Could not confirm.", variant: "destructive" }),
+  });
 
   const { data: profile } = useQuery<any>({
     queryKey: ["/api/doctor-profile"],
@@ -169,6 +181,15 @@ export default function Schedule() {
                           : "bg-gray-50 text-gray-500 border-gray-200"}`}>
                         {appt.status}
                       </span>
+                      {appt.status === "pending" && (
+                        <button
+                          onClick={() => confirmAppt.mutate({ id: appt.id, status: "confirmed" })}
+                          className="text-xs font-bold text-emerald-600 hover:text-emerald-700 px-2 py-1
+                            rounded-lg hover:bg-emerald-50 transition-colors flex items-center gap-1 flex-shrink-0"
+                        >
+                          <CheckCircle2 className="h-3 w-3" /> Confirm
+                        </button>
+                      )}
                     </div>
                   ))}
                 </div>

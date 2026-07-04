@@ -14,6 +14,14 @@ export default defineConfig({
     },
   },
   root: path.resolve(import.meta.dirname, "client"),
+  server: {
+    proxy: {
+      "/api": {
+        target: "http://localhost:5003",
+        changeOrigin: true,
+      },
+    },
+  },
   build: {
     outDir: path.resolve(import.meta.dirname, "dist/public"),
     emptyOutDir: true,
