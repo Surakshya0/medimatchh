@@ -6,8 +6,8 @@ import 'dotenv/config';
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
-import { db } from "./db";
-import { symptoms } from "../shared/schema";
+import { db } from "../db";
+import { symptoms } from "../../shared/schema";
 import { eq, sql } from "drizzle-orm";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -141,7 +141,7 @@ async function syncSymptoms(): Promise<void> {
 
   // Fetch existing symptom names from DB (case-insensitive match)
   const existing = await db.select({ name: symptoms.name }).from(symptoms);
-  const existingNames = new Set(existing.map((s) => s.name.toLowerCase()));
+  const existingNames = new Set(existing.map((s: { name: string }) => s.name.toLowerCase()));
 
   // Filter to only those not already in DB
   const toInsert = newSymptoms.filter((s) => !existingNames.has(s.name.toLowerCase()));

@@ -1,6 +1,6 @@
 import "dotenv/config";
 import { db } from "../db";
-import { symptoms } from "../shared/schema";
+import { symptoms } from "../../shared/schema";
 import { sql } from "drizzle-orm";
 
 const result = await db.execute(

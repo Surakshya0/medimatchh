@@ -476,7 +476,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Auto-detect patient ID from the logged-in user
       if (!appointmentData.patientId) {
-        const patientProfile = await storage.getPatientByUserId(req.user.id);
+        const patientProfile = await storage.getPatientByUserId(req.user!.id);
         if (patientProfile) {
           appointmentData.patientId = patientProfile.id;
         }
@@ -639,7 +639,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   apiRouter.patch("/user", isAuthenticated, async (req, res) => {
     try {
       const { password, userType, email, ...updateData } = req.body;
-      const updatedUser = await storage.updateUser(req.user.id, updateData);
+      const updatedUser = await storage.updateUser(req.user!.id, updateData);
       
       if (!updatedUser) {
         return res.status(500).json({ message: "Failed to update user" });
@@ -912,7 +912,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   apiRouter.get("/appointments/patient", isAuthenticated, checkUserType("patient"), async (req, res) => {
     try {
-      const patient = await storage.getPatientByUserId(req.user.id);
+      const patient = await storage.getPatientByUserId(req.user!.id);
       if (!patient) {
         return res.status(404).json({ message: "Patient profile not found" });
       }
@@ -944,7 +944,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   apiRouter.get("/appointments/doctor", isAuthenticated, checkUserType("doctor"), async (req, res) => {
     try {
-      const doctor = await storage.getDoctorByUserId(req.user.id);
+      const doctor = await storage.getDoctorByUserId(req.user!.id);
       if (!doctor) {
         return res.status(404).json({ message: "Doctor profile not found" });
       }
@@ -1087,7 +1087,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       log("Received health record request:", req.body);
       
       // Handle the patientId automatically from the authenticated user
-      const patient = await storage.getPatientByUserId(req.user.id);
+      const patient = await storage.getPatientByUserId(req.user!.id);
       if (!patient) {
         return res.status(404).json({ message: "Patient profile not found" });
       }
@@ -1159,7 +1159,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   apiRouter.get("/health-records", isAuthenticated, checkUserType("patient"), async (req, res) => {
     try {
-      const patient = await storage.getPatientByUserId(req.user.id);
+      const patient = await storage.getPatientByUserId(req.user!.id);
       if (!patient) {
         return res.status(404).json({ message: "Patient profile not found" });
       }
@@ -1185,7 +1185,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Create patient profile for existing users
   apiRouter.post("/patient-profile", isAuthenticated, async (req, res) => {
     try {
-      const user = req.user;
+      const user = req.user!;
       if (user.userType !== "patient") {
         return res.status(403).json({ message: "Only patient accounts can create patient profiles" });
       }
@@ -1232,7 +1232,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get patient profile for current logged-in user
   apiRouter.get("/patient-profile", isAuthenticated, checkUserType("patient"), async (req, res) => {
     try {
-      const patient = await storage.getPatientByUserId(req.user.id);
+      const patient = await storage.getPatientByUserId(req.user!.id);
       
       if (!patient) {
         return res.status(404).json({ message: "Patient profile not found" });
@@ -1248,7 +1248,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Update patient profile for current logged-in user
   apiRouter.patch("/patient-profile", isAuthenticated, checkUserType("patient"), async (req, res) => {
     try {
-      const patient = await storage.getPatientByUserId(req.user.id);
+      const patient = await storage.getPatientByUserId(req.user!.id);
       
       if (!patient) {
         return res.status(404).json({ message: "Patient profile not found" });
@@ -1398,7 +1398,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Doctor profile routes
   apiRouter.post("/doctor-profile", isAuthenticated, async (req, res) => {
     try {
-      const user = req.user;
+      const user = req.user!;
       if (user.userType !== "doctor") {
         return res.status(403).json({ message: "Only doctor accounts can create doctor profiles" });
       }
@@ -1446,7 +1446,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get doctor profile for current logged-in user
   apiRouter.get("/doctor-profile", isAuthenticated, checkUserType("doctor"), async (req, res) => {
     try {
-      const doctor = await storage.getDoctorByUserId(req.user.id);
+      const doctor = await storage.getDoctorByUserId(req.user!.id);
       
       if (!doctor) {
         return res.status(404).json({ message: "Doctor profile not found" });
@@ -1462,7 +1462,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Update doctor profile for current logged-in user
   apiRouter.patch("/doctor-profile", isAuthenticated, checkUserType("doctor"), async (req, res) => {
     try {
-      const doctor = await storage.getDoctorByUserId(req.user.id);
+      const doctor = await storage.getDoctorByUserId(req.user!.id);
       
       if (!doctor) {
         return res.status(404).json({ message: "Doctor profile not found" });
@@ -1485,7 +1485,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Doctor patients list
   apiRouter.get("/doctor/patients", isAuthenticated, checkUserType("doctor"), async (req, res) => {
     try {
-      const doctor = await storage.getDoctorByUserId(req.user.id);
+      const doctor = await storage.getDoctorByUserId(req.user!.id);
       if (!doctor) return res.status(404).json({ message: "Doctor profile not found" });
 
       const appointments = await storage.getAppointmentsByDoctorId(doctor.id);
@@ -1639,7 +1639,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const reminderData = insertReminderSchema.parse(req.body);
       
       // Make sure the authenticated user is the patient
-      const patient = await storage.getPatientByUserId(req.user.id);
+      const patient = await storage.getPatientByUserId(req.user!.id);
       if (!patient || patient.id !== reminderData.patientId) {
         return res.status(403).json({ message: "Forbidden" });
       }
@@ -1656,7 +1656,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   apiRouter.get("/reminders", isAuthenticated, checkUserType("patient"), async (req, res) => {
     try {
-      const patient = await storage.getPatientByUserId(req.user.id);
+      const patient = await storage.getPatientByUserId(req.user!.id);
       if (!patient) {
         return res.status(404).json({ message: "Patient profile not found" });
       }
@@ -1678,7 +1678,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Make sure the authenticated user is the patient
-      const patient = await storage.getPatientByUserId(req.user.id);
+      const patient = await storage.getPatientByUserId(req.user!.id);
       if (!patient || patient.id !== reminder.patientId) {
         return res.status(403).json({ message: "Forbidden" });
       }
@@ -1823,14 +1823,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Auto-detect patient ID from the logged-in user
       if (!appointmentData.patientId) {
-        const patientProfile = await storage.getPatientByUserId(req.user.id);
+        const patientProfile = await storage.getPatientByUserId(req.user!.id);
         if (patientProfile) {
           appointmentData.patientId = patientProfile.id;
         }
       }
       
       // Make sure the authenticated user is the patient
-      const patient = await storage.getPatientByUserId(req.user.id);
+      const patient = await storage.getPatientByUserId(req.user!.id);
       if (!patient || patient.id !== appointmentData.patientId) {
         return res.status(403).json({ message: "Forbidden" });
       }
@@ -1939,9 +1939,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Get patient city for location-based ranking (if logged in as patient)
       let patientCity: string | undefined;
-      if (req.user?.userType === "patient") {
+      if (req.user!.userType === "patient") {
         try {
-          const patientProfile = await storage.getPatientByUserId(req.user.id);
+          const patientProfile = await storage.getPatientByUserId(req.user!.id);
           if (patientProfile?.city) patientCity = patientProfile.city;
         } catch { /* ignore */ }
       }

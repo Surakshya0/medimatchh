@@ -79,6 +79,7 @@ export default function Login() {
                       <Input
                         placeholder="your@email.com"
                         type="email"
+                        autoComplete="email"
                         className="h-11 rounded-xl border-[#D6EAF8] bg-[#F8FAFE] text-[#2E3A59] placeholder:text-[#A0B4CC] focus-visible:ring-[#4AA8F0] focus-visible:border-[#4AA8F0] transition-all"
                         {...field}
                       />
@@ -99,6 +100,7 @@ export default function Login() {
                         <Input
                           placeholder="••••••••"
                           type={showPassword ? "text" : "password"}
+                          autoComplete="current-password"
                           className="h-11 rounded-xl border-[#D6EAF8] bg-[#F8FAFE] text-[#2E3A59] placeholder:text-[#A0B4CC] focus-visible:ring-[#4AA8F0] focus-visible:border-[#4AA8F0] transition-all pr-10"
                           {...field}
                         />

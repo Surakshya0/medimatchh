@@ -17,18 +17,12 @@ declare global {
       lastName: string;
       userType: string;
       password: string;
-      createdAt?: Date;
+      createdAt?: Date | null;
     }
   }
 }
 
 const scryptAsync = promisify(scrypt);
-
-function normalizeUser(user: any): User | undefined {
-  if (!user) return user;
-  if (user.createdAt === null) user.createdAt = undefined;
-  return user;
-}
 
 export async function hashPassword(password: string) {
   const salt = randomBytes(16).toString("hex");
@@ -67,7 +61,7 @@ export function setupAuth(app: Express) {
       { usernameField: "email" },
       async (email, password, done) => {
         try {
-          const user = normalizeUser(await storage.getUserByEmail(email));
+          const user = await storage.getUserByEmail(email);
           if (!user || !(await comparePasswords(password, user.password))) {
             return done(null, false, { message: "Invalid email or password" });
           } else {
@@ -83,7 +77,7 @@ export function setupAuth(app: Express) {
   passport.serializeUser((user, done) => done(null, user.id));
   passport.deserializeUser(async (id: number, done: (err: any, user?: User | false | null) => void) => {
     try {
-      const user = normalizeUser(await storage.getUser(id));
+      const user = await storage.getUser(id);
       done(null, user);
     } catch (err) {
       done(err, null);
@@ -96,7 +90,7 @@ export function setupAuth(app: Express) {
       const { email, password, firstName, lastName, userType } = req.body;
       
       // Check if user already exists
-      const existingUser = normalizeUser(await storage.getUserByEmail(email));
+      const existingUser = await storage.getUserByEmail(email);
       if (existingUser) {
         return res.status(400).json({ message: "Email already registered" });
       }
@@ -197,17 +191,15 @@ export function setupAuth(app: Express) {
       if (err) return next(err);
       if (!user) return res.status(401).json({ message: info?.message || "Authentication failed" });
       
-      if (user && user.createdAt === null) user.createdAt = undefined;
-      
       req.login(user as User, async (err: Error | null) => {
         if (err) return next(err);
         
         // Get profile data
         let profile: Patient | Doctor | null = null;
         if (user.userType === "patient") {
-          profile = await storage.getPatientByUserId(user.id);
+          profile = (await storage.getPatientByUserId(user.id)) ?? null;
         } else if (user.userType === "doctor") {
-          profile = await storage.getDoctorByUserId(user.id);
+          profile = (await storage.getDoctorByUserId(user.id)) ?? null;
         }
         
         res.json({ user, profile });
@@ -229,16 +221,14 @@ export function setupAuth(app: Express) {
       return res.status(401).json({ message: "Not authenticated" });
     }
     
-    const user = req.user;
+    const user = req.user!;
     (async () => {
       let profile: Patient | Doctor | null = null;
       if (user.userType === "patient") {
-        profile = await storage.getPatientByUserId(user.id);
+        profile = (await storage.getPatientByUserId(user.id)) ?? null;
       } else if (user.userType === "doctor") {
-        profile = await storage.getDoctorByUserId(user.id);
+        profile = (await storage.getDoctorByUserId(user.id)) ?? null;
       }
-      
-      if (user && user.createdAt === null) user.createdAt = undefined;
       
       res.json({ user, profile });
     })().catch(err => {

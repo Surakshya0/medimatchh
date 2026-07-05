@@ -1,6 +1,6 @@
 import "dotenv/config";
-import { db } from "./db";
-import { doctors, symptoms, doctorSymptoms, users } from "../shared/schema";
+import { db } from "../db";
+import { doctors, symptoms, doctorSymptoms, users } from "../../shared/schema";
 import { eq, inArray, count } from "drizzle-orm";
 
 // verify some associations
@@ -24,28 +24,28 @@ const allDocLinks = await db.select({
 }).from(doctorSymptoms);
 
 const allDocs = await db.select().from(doctors);
-const docMap = new Map(allDocs.map(d => [d.id, d]));
+const docMap = new Map(allDocs.map((d: { id: number }) => [d.id, d]));
 
 const allSyms = await db.select().from(symptoms);
-const symMap = new Map(allSyms.map(s => [s.id, s]));
+const symMap = new Map(allSyms.map((s: { id: number }) => [s.id, s]));
 
 console.log("=== VERIFICATION ===\n");
 for (const check of checks) {
-  const sym = allSyms.find(s => s.name === check.symptom);
+  const sym = allSyms.find((s: { name: string }) => s.name === check.symptom);
   if (!sym) { console.log(`❌ symptom "${check.symptom}" not found in DB`); continue; }
 
-  const links = allDocLinks.filter(l => l.symptomId === sym.id);
+  const links = allDocLinks.filter((l: { symptomId: number }) => l.symptomId === sym.id);
   if (links.length === 0) { console.log(`❌ "${check.symptom}" has NO doctor links`); continue; }
 
-  const dermDocs = links.filter(l => {
-    const d = docMap.get(l.doctorId);
+  const dermDocs = links.filter((l: { doctorId: number }) => {
+    const d = docMap.get(l.doctorId) as { specialty: string } | undefined;
     return d && d.specialty.toLowerCase() === check.expectedSpecialty.toLowerCase();
   });
 
-  const specialties = [...new Set(links.map(l => docMap.get(l.doctorId)?.specialty).filter(Boolean))];
+  const specialties = [...new Set(links.map((l: { doctorId: number }) => (docMap.get(l.doctorId) as { specialty: string } | undefined)?.specialty).filter(Boolean))] as string[];
 
   if (dermDocs.length > 0) {
-    console.log(`✅ "${check.symptom}" → ${links.length} doctors, includes ${check.expectedSpecialty} (${dermDocs.length} docs, expertise ${dermDocs[0]?.expertise})`);
+    console.log(`✅ "${check.symptom}" → ${links.length} doctors, includes ${check.expectedSpecialty} (${dermDocs.length} docs, expertise ${(dermDocs[0] as any)?.expertise})`);
   } else {
     console.log(`⚠️  "${check.symptom}" → ${links.length} doctors, specialties: ${specialties.join(", ")} (expected ${check.expectedSpecialty})`);
   }

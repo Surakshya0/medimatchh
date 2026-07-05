@@ -134,11 +134,11 @@ async function createPool(retries = MAX_RETRIES, attempt = 0): Promise<{pool: Po
     if (isNeon) {
       console.log('Connecting to Neon database...');
       pool = new Pool(poolConfig);
-      db = drizzle(pool, { schema });
+      db = drizzle(pool as any, { schema });
     } else {
       console.log('Connecting to local PostgreSQL database...');
       pool = new NodePool(poolConfig);
-      db = drizzleNode(pool, { schema });
+      db = drizzleNode(pool as any, { schema });
     }
     
     // Test the connection
@@ -151,7 +151,7 @@ async function createPool(retries = MAX_RETRIES, attempt = 0): Promise<{pool: Po
     
     // Handle errors on the pool
     if (pool instanceof NodePool) {
-      pool.on('error', (err) => {
+      (pool as NodePool).on('error', (err) => {
         console.error('Unexpected database error:', err);
         if (isConnected) {
           isConnected = false;
@@ -188,10 +188,10 @@ try {
   const poolConfig = createPoolConfig();
   if (isNeon) {
     poolInstance = new Pool(poolConfig);
-    dbInstance = drizzle(poolInstance, { schema });
+    dbInstance = drizzle(poolInstance as any, { schema });
   } else {
     poolInstance = new NodePool(poolConfig);
-    dbInstance = drizzleNode(poolInstance, { schema });
+    dbInstance = drizzleNode(poolInstance as any, { schema });
   }
   
   // Start reconnection attempts in background

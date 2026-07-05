@@ -3,8 +3,8 @@
 // Run after seed + syncSymptoms:  npx tsx server/syncDoctorSymptoms.ts
 
 import "dotenv/config";
-import { db } from "./db";
-import { doctors, symptoms, doctorSymptoms } from "../shared/schema";
+import { db } from "../db";
+import { doctors, symptoms, doctorSymptoms } from "../../shared/schema";
 import { and, eq, inArray } from "drizzle-orm";
 
 // ── Keyword → specialty heuristics (mirrors syncSymptoms.ts) ────────────────────
@@ -68,7 +68,7 @@ async function syncDoctorSymptoms() {
     doctorId: doctorSymptoms.doctorId,
     symptomId: doctorSymptoms.symptomId,
   }).from(doctorSymptoms);
-  const existingSet = new Set(existingLinks.map(l => `${l.doctorId}:${l.symptomId}`));
+  const existingSet = new Set(existingLinks.map((l: { doctorId: number; symptomId: number }) => `${l.doctorId}:${l.symptomId}`));
   console.log(`Existing associations: ${existingLinks.length}`);
 
   // 3. Build new links
@@ -83,7 +83,7 @@ async function syncDoctorSymptoms() {
     const specialties = guessSpecialties(symptom.name);
     for (const specialty of specialties) {
       const matchedDoctors = allDoctors.filter(
-        d => d.specialty.toLowerCase() === specialty.toLowerCase()
+        (d: { specialty: string }) => d.specialty.toLowerCase() === specialty.toLowerCase()
       );
       const isPrimary = specialties.indexOf(specialty) === 0;
       const expertise = isPrimary ? 5 : 3;

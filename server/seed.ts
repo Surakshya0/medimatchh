@@ -99,7 +99,7 @@ async function seedDatabase() {
     console.log(`Found ${existingDoctors.length} existing doctors. Will add more to reach 25...`);
     
     // First get existing emails so we don't try to create duplicates
-    const existingEmails = new Set(existingUsers.map(user => user.email));
+    const existingEmails = new Set(existingUsers.map((user: { email: string }) => user.email));
     
     // Create the doctor specialties data
     const doctorSpecialties = [
@@ -196,7 +196,7 @@ async function seedDatabase() {
     const rawHeaders = readCSVHeaders(csvPath);
 
     // Keep existing symptom names so we don't re-insert duplicates
-    const existingNames = new Set(existingSymptoms.map(s => s.name.toLowerCase()));
+    const existingNames = new Set(existingSymptoms.map((s: { name: string }) => s.name.toLowerCase()));
 
     const toInsert: { name: string; description: null; bodyPart: string; severity: string }[] = [];
 
@@ -247,8 +247,8 @@ async function seedDatabase() {
   if (existingDoctorSymptoms.length < allSymptoms.length * 2) {
     console.log('Creating doctor-symptom associations for all symptoms...');
 
-    const existingLinkSet = new Set(existingDoctorSymptoms.map(l => `${l.doctorId}:${l.symptomId}`));
-    const symptomMap = new Map(allSymptoms.map(s => [s.name, s]));
+    const existingLinkSet = new Set(existingDoctorSymptoms.map((l: { doctorId: number; symptomId: number }) => `${l.doctorId}:${l.symptomId}`));
+    const symptomMap = new Map(allSymptoms.map((s: { name: string; id: number }) => [s.name, s]));
     const toLink: { doctorId: number; symptomId: number; expertise: number }[] = [];
 
     for (const doctor of allDoctors) {
@@ -279,7 +279,7 @@ async function seedDatabase() {
     }
 
     // Add a few low-expertise random links for variety
-    const uncovered = allSymptoms.filter(s => {
+    const uncovered = allSymptoms.filter((s: { id: number }) => {
       const key = `${allDoctors[0]?.id}:${s.id}`;
       return !existingLinkSet.has(key);
     });
@@ -354,9 +354,9 @@ async function seedDatabase() {
       "General Illness":        ["fatigue", "headache", "mild fever", "muscle pain", "loss of appetite", "weakness"],
     };
 
-    const symptomNameToId = new Map(allSymptoms.map(s => [s.name.toLowerCase(), s.id]));
     const toInsertDisease: { diseaseName: string; symptomId: number; relevanceScore: number }[] = [];
     const insertedDiseaseSet = new Set<string>();
+    const symptomNameToId = new Map<string, number>(allSymptoms.map((s: { name: string; id: number }) => [s.name.toLowerCase(), s.id]));
 
     for (const [disease, symNames] of Object.entries(diseaseSymptomMap)) {
       for (const symName of symNames) {
@@ -383,7 +383,7 @@ async function seedDatabase() {
       );
 
       // Add 2-3 random lower relevance symptoms per disease
-      const candidates = allSymptoms.filter(s => !primaryIds.has(s.id) && Math.random() < 0.15);
+      const candidates = allSymptoms.filter((s: { id: number }) => !primaryIds.has(s.id) && Math.random() < 0.15);
       for (const candidate of candidates.slice(0, 3)) {
         toInsertDisease.push({
           diseaseName: disease,

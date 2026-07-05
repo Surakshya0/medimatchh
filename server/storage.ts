@@ -204,7 +204,7 @@ export class MemStorage implements IStorage {
 
   async createPatient(patient: InsertPatient): Promise<Patient> {
     const id = this.patientId++;
-    const newPatient: Patient = { ...patient, id };
+    const newPatient = { ...patient, id } as Patient;
     this.patients.set(id, newPatient);
     return newPatient;
   }
@@ -233,7 +233,7 @@ export class MemStorage implements IStorage {
 
   async createDoctor(doctor: InsertDoctor): Promise<Doctor> {
     const id = this.doctorId++;
-    const newDoctor: Doctor = { ...doctor, id };
+    const newDoctor = { ...doctor, id } as Doctor;
     this.doctors.set(id, newDoctor);
     return newDoctor;
   }
@@ -278,7 +278,7 @@ export class MemStorage implements IStorage {
 
   async createSymptom(symptom: InsertSymptom): Promise<Symptom> {
     const id = this.symptomId++;
-    const newSymptom: Symptom = { ...symptom, id };
+    const newSymptom = { ...symptom, id } as Symptom;
     this.symptoms.set(id, newSymptom);
     return newSymptom;
   }
@@ -290,7 +290,7 @@ export class MemStorage implements IStorage {
   // Doctor-Symptom methods
   async createDoctorSymptom(doctorSymptom: InsertDoctorSymptom): Promise<DoctorSymptom> {
     const id = this.doctorSymptomId++;
-    const newDoctorSymptom: DoctorSymptom = { ...doctorSymptom, id };
+    const newDoctorSymptom = { ...doctorSymptom, id } as DoctorSymptom;
     this.doctorSymptoms.set(id, newDoctorSymptom);
     return newDoctorSymptom;
   }
@@ -311,7 +311,7 @@ export class MemStorage implements IStorage {
     // Tally up expertise scores for matching doctors
     for (const ds of matchingDoctorSymptoms) {
       const currentExpertise = doctorExpertiseMap.get(ds.doctorId) || 0;
-      doctorExpertiseMap.set(ds.doctorId, currentExpertise + ds.expertise);
+      doctorExpertiseMap.set(ds.doctorId, currentExpertise + (ds.expertise ?? 3));
     }
 
     // Get the matching doctors
@@ -710,7 +710,7 @@ export class MemStorage implements IStorage {
       date: processedDate,
     };
     
-    const newHealthRecord: HealthRecord = { ...sanitizedRecord, id };
+    const newHealthRecord = { ...sanitizedRecord, id } as HealthRecord;
     this.healthRecords.set(id, newHealthRecord);
     return newHealthRecord;
   }
@@ -727,7 +727,7 @@ export class MemStorage implements IStorage {
 
   async createAvailability(availabilityData: InsertAvailability): Promise<Availability> {
     const id = this.availabilityId++;
-    const newAvailability: Availability = { ...availabilityData, id };
+    const newAvailability = { ...availabilityData, id } as Availability;
     this.availabilities.set(id, newAvailability);
     return newAvailability;
   }
@@ -756,7 +756,7 @@ export class MemStorage implements IStorage {
 
   async createReminder(reminder: InsertReminder): Promise<Reminder> {
     const id = this.reminderId++;
-    const newReminder: Reminder = { ...reminder, id };
+    const newReminder = { ...reminder, id } as Reminder;
     this.reminders.set(id, newReminder);
     return newReminder;
   }
@@ -782,7 +782,7 @@ export class MemStorage implements IStorage {
 
   async createDiseaseSymptom(data: InsertDiseaseSymptom): Promise<DiseaseSymptom> {
     const id = this.doctorSymptomId++; 
-    const ds: DiseaseSymptom = { ...data, id };
+    const ds = { ...data, id } as DiseaseSymptom;
     return ds;
   }
 
@@ -964,7 +964,7 @@ export class DatabaseStorage implements IStorage {
       .where(sql`${doctors.hospitalAffiliation} IS NOT NULL`)
       .groupBy(doctors.hospitalAffiliation)
       .orderBy(doctors.hospitalAffiliation);
-    return result.map(r => r.hospital!);
+    return result.map((r: { hospital: string | null }) => r.hospital!);
   }
 
   // Symptom methods
@@ -1004,7 +1004,7 @@ export class DatabaseStorage implements IStorage {
       .where(inArray(doctorSymptoms.symptomId, symptomIds));
 
     // Extract unique doctor IDs
-    const doctorIds = [...new Set(doctorSymptomLinks.map(link => link.doctorId))];
+    const doctorIds = [...new Set(doctorSymptomLinks.map((link: { doctorId: number }) => link.doctorId))] as number[];
 
     // If no matches, return empty array
     if (doctorIds.length === 0) return [];
@@ -1045,7 +1045,7 @@ export class DatabaseStorage implements IStorage {
       .from(doctors)
       .where(inArray(doctors.id, doctorIds));
 
-    const doctorUserIds = matchingDoctors.map(doctor => doctor.userId);
+    const doctorUserIds = matchingDoctors.map((doctor: { userId: number }) => doctor.userId);
     const doctorUsers = await db.select()
       .from(users)
       .where(inArray(users.id, doctorUserIds));
@@ -1071,8 +1071,8 @@ export class DatabaseStorage implements IStorage {
           )
         );
       for (const docId of doctorIds) {
-        const docSlots = allSlots.filter(s => s.doctorId === docId);
-        hasAvailabilityMap.set(docId, docSlots.some(s => {
+        const docSlots = allSlots.filter((s: { doctorId: number }) => s.doctorId === docId);
+        hasAvailabilityMap.set(docId, docSlots.some((s: { dayOfWeek: number; startTime: string }) => {
           if (s.dayOfWeek < currentDay) return false;
           if (s.dayOfWeek === currentDay && s.startTime <= currentTime) return false;
           return true;
@@ -1080,7 +1080,7 @@ export class DatabaseStorage implements IStorage {
       }
     }
 
-    const results = matchingDoctors.map(doctor => {
+    const results = matchingDoctors.map((doctor: { id: number; userId: number; experience: number; rating: number | null; location: string | null }) => {
       const user = userMap.get(doctor.userId);
       if (!user) return null;
 
@@ -1125,8 +1125,8 @@ export class DatabaseStorage implements IStorage {
     });
 
     return results
-      .filter((result): result is {doctor: Doctor, user: User, matchScore: number, symptomMatches: number} => result !== null)
-      .sort((a, b) => b.matchScore - a.matchScore);
+      .filter((result: { doctor: Doctor; user: User; matchScore: number; symptomMatches: number } | null): result is {doctor: Doctor, user: User, matchScore: number, symptomMatches: number} => result !== null)
+      .sort((a: { matchScore: number }, b: { matchScore: number }) => b.matchScore - a.matchScore);
   }
 
   // ── NEW v2 METHOD ─────────────────────────────────────────────────────────
@@ -1158,7 +1158,7 @@ export class DatabaseStorage implements IStorage {
       return [];
     }
 
-    const doctorIds = specialtyDoctors.map(d => d.id);
+    const doctorIds = specialtyDoctors.map((d: { id: number }) => d.id);
 
     // Step 2 — fetch symptom-doctor links for the filtered pool only
     let symptomLinks: { doctorId: number; symptomId: number; expertise: number | null }[] = [];
@@ -1183,7 +1183,7 @@ export class DatabaseStorage implements IStorage {
     }
 
     // Batch-fetch user data for all specialty doctors
-    const userIds = specialtyDoctors.map(d => d.userId);
+    const userIds = specialtyDoctors.map((d: { userId: number }) => d.userId);
     const doctorUsers = await db.select().from(users).where(inArray(users.id, userIds));
     const userMap = new Map<number, User>();
     for (const u of doctorUsers) userMap.set(u.id, u);
@@ -1204,8 +1204,8 @@ export class DatabaseStorage implements IStorage {
           )
         );
       for (const docId of doctorIds) {
-        const docSlots = allSlots.filter(s => s.doctorId === docId);
-        hasAvailabilityMap.set(docId, docSlots.some(s => {
+        const docSlots = allSlots.filter((s: { doctorId: number }) => s.doctorId === docId);
+        hasAvailabilityMap.set(docId, docSlots.some((s: { dayOfWeek: number; startTime: string }) => {
           if (s.dayOfWeek < currentDay) return false;
           if (s.dayOfWeek === currentDay && s.startTime <= currentTime) return false;
           return true;
@@ -1215,7 +1215,7 @@ export class DatabaseStorage implements IStorage {
 
     // Step 3 — score each doctor using the improved formula
     const results = specialtyDoctors
-      .map(doctor => {
+      .map((doctor: { id: number; userId: number; experience: number; rating: number | null; specialty: string; location: string | null }) => {
         const user = userMap.get(doctor.userId);
         if (!user) return null;
 
@@ -1264,8 +1264,8 @@ export class DatabaseStorage implements IStorage {
           symptomMatches: symMatches
         };
       })
-      .filter((r): r is {doctor: Doctor, user: User, matchScore: number, symptomMatches: number} => r !== null)
-      .sort((a, b) => b.matchScore - a.matchScore);
+      .filter((r: { doctor: Doctor; user: User; matchScore: number; symptomMatches: number } | null): r is {doctor: Doctor, user: User, matchScore: number, symptomMatches: number} => r !== null)
+      .sort((a: { matchScore: number }, b: { matchScore: number }) => b.matchScore - a.matchScore);
 
     console.log(`getDoctorsBySpecialtyRanked: ${results.length} doctors ranked (specialties: ${targetSpecialties.join(", ")})`);
     return results;
@@ -1330,7 +1330,7 @@ export class DatabaseStorage implements IStorage {
 
   async createAppointment(appointment: InsertAppointment): Promise<Appointment> {
     // Use database transaction to ensure atomicity
-    return await db.transaction(async (tx) => {
+    return await db.transaction(async (tx: any) => {
       // Check for conflicts before creating
       const hasConflict = await this.checkAppointmentConflict(appointment.doctorId, appointment.date, appointment.duration);
       if (hasConflict) {
@@ -1344,9 +1344,6 @@ export class DatabaseStorage implements IStorage {
   }
 
   async checkAppointmentConflict(doctorId: number, date: Date, duration: number, excludeAppointmentId?: number): Promise<boolean> {
-    const startTime = date;
-    const endTime = new Date(date.getTime() + (duration * 60000)); // Convert minutes to milliseconds
-    
     // Query for overlapping appointments for the same doctor
     // Appointments overlap if: startTime < existing_end AND endTime > existing_start
     const conflictingAppointments = await db
@@ -1358,8 +1355,8 @@ export class DatabaseStorage implements IStorage {
           ne(appointments.status, 'cancelled'),
           excludeAppointmentId ? ne(appointments.id, excludeAppointmentId) : undefined,
           // Check for time overlap using SQL interval logic
-          lt(startTime, sql`${appointments.date} + INTERVAL '1 minute' * ${appointments.duration}`),
-          gte(endTime, appointments.date)
+          sql`${date} < ${appointments.date} + INTERVAL '1 minute' * ${appointments.duration}`,
+          sql`${new Date(date.getTime() + (duration * 60000))} >= ${appointments.date}`
         )
       );
     
@@ -1393,7 +1390,7 @@ export class DatabaseStorage implements IStorage {
       console.log("DB storage: Creating health record with data:", healthRecord);
       
       // Ensure date is properly handled before DB insertion
-      let processedRecord = { ...healthRecord };
+      const processedRecord: Record<string, any> = { ...healthRecord };
       
       if (processedRecord.date) {
         // Handle different date formats
@@ -1436,7 +1433,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateAvailability(id: number, data: Partial<InsertAvailability>): Promise<Availability | undefined> {
-    const [updated] = await db.update(availability).set(data).where(eq(availability.id, id)).returning();
+    const [updated] = await db.update(availability).set(data as any).where(eq(availability.id, id)).returning();
     return updated;
   }
 

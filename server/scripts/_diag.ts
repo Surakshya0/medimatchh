@@ -1,6 +1,6 @@
 import "dotenv/config";
-import { db } from "./db";
-import { doctors, symptoms, doctorSymptoms, users } from "../shared/schema";
+import { db } from "../db";
+import { doctors, symptoms, doctorSymptoms, users } from "../../shared/schema";
 import { eq, count } from "drizzle-orm";
 
 // Count doctors per specialty
@@ -38,13 +38,13 @@ const sampleLinks = await db.select({
   expertise: doctorSymptoms.expertise,
 }).from(doctorSymptoms).limit(10);
 
-const docMap = new Map(docs.map(d => [d.id, d]));
+const docMap = new Map(docs.map((d: { id: number }) => [d.id, d]));
 const allSyms = await db.select().from(symptoms);
-const symMap = new Map(allSyms.map(s => [s.id, s]));
+const symMap = new Map(allSyms.map((s: { id: number }) => [s.id, s]));
 
 console.log("\n=== SAMPLE ASSOCIATIONS ===");
 for (const l of sampleLinks) {
-  const d = docMap.get(l.doctorId);
-  const s = symMap.get(l.symptomId);
+  const d = docMap.get(l.doctorId) as { specialty: string } | undefined;
+  const s = symMap.get(l.symptomId) as { name: string } | undefined;
   console.log(`  Dr ${d?.specialty} → "${s?.name}" (expertise: ${l.expertise})`);
 }

@@ -57,6 +57,8 @@ export default function Register() {
   const [error, setError] = useState<string | null>(null);
   const [userType, setUserType] = useState<"patient" | "doctor">("patient");
   const [showPassword, setShowPassword] = useState(false);
+  const [emailReadOnly, setEmailReadOnly] = useState(true);
+  const [passwordReadOnly, setPasswordReadOnly] = useState(true);
 
   const { data: hospitals = [] } = useQuery<string[]>({
     queryKey: ["/api/hospitals"],
@@ -181,7 +183,7 @@ export default function Register() {
                     <FormItem>
                       <FormLabel className="text-[#2E3A59] font-medium text-sm">First Name</FormLabel>
                       <FormControl>
-                        <Input placeholder="Bijay" {...field}
+                        <Input placeholder="Bijay" autoComplete="given-name" {...field}
                           className="h-11 rounded-xl border-[#D6EAF8] bg-[#F8FAFE] text-[#2E3A59] placeholder:text-[#A0B4CC] focus-visible:ring-[#4AA8F0] focus-visible:border-[#4AA8F0] transition-all" />
                       </FormControl>
                       <FormMessage className="text-xs text-red-500" />
@@ -195,7 +197,7 @@ export default function Register() {
                     <FormItem>
                       <FormLabel className="text-[#2E3A59] font-medium text-sm">Last Name</FormLabel>
                       <FormControl>
-                        <Input placeholder="Sharma" {...field}
+                        <Input placeholder="Sharma" autoComplete="family-name" {...field}
                           className="h-11 rounded-xl border-[#D6EAF8] bg-[#F8FAFE] text-[#2E3A59] placeholder:text-[#A0B4CC] focus-visible:ring-[#4AA8F0] focus-visible:border-[#4AA8F0] transition-all" />
                       </FormControl>
                       <FormMessage className="text-xs text-red-500" />
@@ -211,7 +213,7 @@ export default function Register() {
                   <FormItem>
                     <FormLabel className="text-[#2E3A59] font-medium text-sm">Email</FormLabel>
                     <FormControl>
-                      <Input placeholder="your@email.com" type="email" {...field}
+                      <Input placeholder="your@email.com" type="email" autoComplete="off" readOnly={emailReadOnly} onFocus={() => setEmailReadOnly(false)} onClick={() => setEmailReadOnly(false)} {...field}
                         className="h-11 rounded-xl border-[#D6EAF8] bg-[#F8FAFE] text-[#2E3A59] placeholder:text-[#A0B4CC] focus-visible:ring-[#4AA8F0] focus-visible:border-[#4AA8F0] transition-all" />
                     </FormControl>
                     <FormMessage className="text-xs text-red-500" />
@@ -227,7 +229,7 @@ export default function Register() {
                     <FormLabel className="text-[#2E3A59] font-medium text-sm">Password</FormLabel>
                     <FormControl>
                       <div className="relative">
-                        <Input placeholder="••••••••" type={showPassword ? "text" : "password"} {...field}
+                        <Input placeholder="••••••••" type={showPassword ? "text" : "password"} autoComplete="new-password" readOnly={passwordReadOnly} onFocus={() => setPasswordReadOnly(false)} onClick={() => setPasswordReadOnly(false)} {...field}
                           className="h-11 rounded-xl border-[#D6EAF8] bg-[#F8FAFE] text-[#2E3A59] placeholder:text-[#A0B4CC] focus-visible:ring-[#4AA8F0] focus-visible:border-[#4AA8F0] transition-all pr-10" />
                         <button
                           type="button"

@@ -1,6 +1,6 @@
 import "dotenv/config";
-import { db } from "./db";
-import { symptoms } from "../shared/schema";
+import { db } from "../db";
+import { symptoms } from "../../shared/schema";
 import { eq } from "drizzle-orm";
 
 const testNames = [

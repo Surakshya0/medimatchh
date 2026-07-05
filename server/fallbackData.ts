@@ -29,7 +29,8 @@ export const fallbackDoctors: Doctor[] = [
     profilePicture: null,
     acceptingNewPatients: true,
     rating: 4.8,
-    reviewCount: 32
+    reviewCount: 32,
+    location: null
   },
   {
     id: 102,
@@ -43,7 +44,8 @@ export const fallbackDoctors: Doctor[] = [
     profilePicture: null,
     acceptingNewPatients: true,
     rating: 4.5,
-    reviewCount: 28
+    reviewCount: 28,
+    location: null
   },
   {
     id: 103,
@@ -57,7 +59,8 @@ export const fallbackDoctors: Doctor[] = [
     profilePicture: null,
     acceptingNewPatients: true,
     rating: 4.3,
-    reviewCount: 22
+    reviewCount: 22,
+    location: null
   },
   {
     id: 104,
@@ -71,7 +74,8 @@ export const fallbackDoctors: Doctor[] = [
     profilePicture: null,
     acceptingNewPatients: true,
     rating: 4.0,
-    reviewCount: 15
+    reviewCount: 15,
+    location: null
   },
   {
     id: 105,
@@ -85,7 +89,8 @@ export const fallbackDoctors: Doctor[] = [
     profilePicture: null,
     acceptingNewPatients: true,
     rating: 4.2,
-    reviewCount: 18
+    reviewCount: 18,
+    location: null
   }
 ];
 
