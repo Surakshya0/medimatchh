@@ -6,3 +6,31 @@ vite.config.ts.*
 *.tar.gz
 .env
 .env.*
+
+# Uploads
+uploads/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+Thumbs.db
+
+# Debug
+*.log
+npm-debug.log*
+
+# AI/ML generated files
+.claude/
+.xyz/
+
+# Database backups
+*.sql
+
+# Temp files
+cookies.txt
+hash.cjs
+_fix_pg.ps1
+_fix_pg2.ps1
+_sc_fix.ps1
