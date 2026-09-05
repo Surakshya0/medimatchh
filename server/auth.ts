@@ -153,7 +153,9 @@ export function setupAuth(app: Express) {
               console.error("Login error:", err);
               return res.status(500).json({ message: "Registration successful but login failed" });
             }
-            return res.status(201).json({ user, profile });
+            // Remove password from response
+            const { password: _, ...userWithoutPassword } = user;
+            return res.status(201).json({ user: userWithoutPassword, profile });
           });
         } catch (profileErr) {
           console.error("Error creating profile:", profileErr);
@@ -164,10 +166,12 @@ export function setupAuth(app: Express) {
               console.error("Login error after profile creation failed:", loginErr);
               return res.status(500).json({ message: "Registration partially successful, but profile setup and login failed" });
             }
-            return res.status(201).json({ 
-              user, 
-              profile: null, 
-              warning: "Account created but profile setup failed. Please update your profile." 
+            // Remove password from response
+            const { password: _, ...userWithoutPassword } = user;
+            return res.status(201).json({
+              user: userWithoutPassword,
+              profile: null,
+              warning: "Account created but profile setup failed. Please update your profile."
             });
           });
         }
@@ -202,7 +206,9 @@ export function setupAuth(app: Express) {
           profile = (await storage.getDoctorByUserId(user.id)) ?? null;
         }
         
-        res.json({ user, profile });
+        // Remove password from response
+        const { password: _, ...userWithoutPassword } = user;
+        res.json({ user: userWithoutPassword, profile });
       });
     })(req, res, next);
   });
@@ -230,7 +236,9 @@ export function setupAuth(app: Express) {
         profile = (await storage.getDoctorByUserId(user.id)) ?? null;
       }
       
-      res.json({ user, profile });
+      // Remove password from response
+      const { password: _, ...userWithoutPassword } = user;
+      res.json({ user: userWithoutPassword, profile });
     })().catch(err => {
       console.error("Error fetching profile:", err);
       res.status(500).json({ message: "Error fetching profile" });
