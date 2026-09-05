@@ -1,36 +1,48 @@
+# Dependencies
 node_modules
+
+# Build output
 dist
-.DS_Store
 server/public
-vite.config.ts.*
-*.tar.gz
+
+# Environment
 .env
 .env.*
 
-# Uploads
+# Uploads (runtime user data)
 uploads/
 
-# IDE
+# Local scratch, not part of the project
+_archive/
+
+# Editor and tool settings
 .vscode/
 .idea/
-
-# OS
-Thumbs.db
-
-# Debug
-*.log
-npm-debug.log*
-
-# AI/ML generated files
 .claude/
 .xyz/
 
-# Database backups
-*.sql
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
 
-# Temp files
-cookies.txt
-hash.cjs
-_fix_pg.ps1
-_fix_pg2.ps1
-_sc_fix.ps1
+# Logs
+*.log
+npm-debug.log*
+
+# Database dumps
+*backup*.sql
+
+# Documents and Office lock files
+*.pptx
+*.docx
+~$*
+
+# Archives
+*.tar.gz
+*.zip
+
+# Misc
+vite.config.ts.*
+*.tsbuildinfo
+coverage/
