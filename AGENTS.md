@@ -67,7 +67,7 @@ Open: http://localhost:5173
 | Metric        | Before  | After   |
 |---------------|---------|---------|
 | Top-1 correct | 43.9%   | 90.2%   |
-| Top-3 correct | 63.4%   | 97.6%   |
+| Top-3 correct | 75.6%   | 97.6%   |
 | Avg spec rank | N/A     | 1.2     |
 
 ### Database

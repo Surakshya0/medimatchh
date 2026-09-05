@@ -234,7 +234,7 @@ The Naive Bayes classifier was evaluated on a held-out test set of 42 medical re
 | Metric | Before | After | Improvement |
 |--------|--------|-------|-------------|
 | Top-1 Correct | 43.9% (18/41) | **90.2%** (37/41) | +46.3% |
-| Top-3 Correct | 63.4% (26/41) | **97.6%** (40/41) | +34.2% |
+| Top-3 Correct | 75.6% (31/41) | **97.6%** (40/41) | +22.0% |
 | Avg Specialty Rank | N/A | **1.2** | — |
 
 #### 2.2 Optimization Techniques Applied
